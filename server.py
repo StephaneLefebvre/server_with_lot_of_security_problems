@@ -46,7 +46,7 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
             self.path = "/normal_user2"
         if len(self.path) < 2 and self.is_auth_admin():
             self.path = "/admin"
-        if not "specialChar" in self.path and not ".png" in self.path and not self.is_auth():
+        if not "specialChar" in self.path and not ".png" in self.path and not self.is_auth() and not self.path.startswith("/chatroom"):
             self.path = "/"
         f = self.send_head(cookie)
         if f:
@@ -94,51 +94,55 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     
     def do_POST(self):
         """Serve a POST request."""
-        if self.headers["Content-Type"] == "application/x-www-form-urlencoded":
-            data = self.extract_POST_data()
-            cookie = None
-            if data.get('psw') == "easyToGuessPassword":
-                cookie = http.cookies.SimpleCookie()
-                cookie['normal_user1'] = "ok"
-                self.headers['Cookie'] = "normal_user1=ok" 
+        if not self.pathstartswith('/chatroom'):
+          if self.headers["Content-Type"] == "application/x-www-form-urlencoded":
+              data = self.extract_POST_data()
+              cookie = None
+              if data.get('psw') == "easyToGuessPassword":
+                  cookie = http.cookies.SimpleCookie()
+                  cookie['normal_user1'] = "ok"
+                  self.headers['Cookie'] = "normal_user1=ok" 
 
-            if data.get('psw') == "normalToGuessPassword":
-                cookie = http.cookies.SimpleCookie()
-                cookie['normal_user2'] = "ok"
-                self.headers['Cookie'] = "normal_user2=ok" 
+              if data.get('psw') == "normalToGuessPassword":
+                  cookie = http.cookies.SimpleCookie()
+                  cookie['normal_user2'] = "ok"
+                  self.headers['Cookie'] = "normal_user2=ok" 
 
-            if data.get('psw') == "hardToGuessPassword":
-                cookie = http.cookies.SimpleCookie()
-                cookie['admin'] = "ok"
-                self.headers['Cookie'] = "admin=ok" 
+              if data.get('psw') == "hardToGuessPassword":
+                  cookie = http.cookies.SimpleCookie()
+                  cookie['admin'] = "ok"
+                  self.headers['Cookie'] = "admin=ok" 
 
-            self.do_GET(cookie)
-            return
-        r, info = self.deal_post_data()
-        print((r, info, "by: ", self.client_address))
-        f = BytesIO()
-        f.write(b'<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
-        f.write(b"<html>\n<title>Upload Result Page</title>\n")
-        f.write(b"<body>\n<h2>Upload Result Page</h2>\n")
-        f.write(b"<hr>\n")
-        if r:
-            f.write(b"<strong>Success:</strong>")
+              self.do_GET(cookie)
+              return
+          r, info = self.deal_post_data()
+          print((r, info, "by: ", self.client_address))
+          f = BytesIO()
+          f.write(b'<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">')
+          f.write(b"<html>\n<title>Upload Result Page</title>\n")
+          f.write(b"<body>\n<h2>Upload Result Page</h2>\n")
+          f.write(b"<hr>\n")
+          if r:
+              f.write(b"<strong>Success:</strong>")
+          else:
+              f.write(b"<strong>Failed:</strong>")
+          f.write(info.encode())
+          f.write(("<br><a href=\"%s\">back</a>" % self.headers['referer']).encode())
+          f.write(b"<hr><small>Powerd By: bones7456, check new version at ")
+          f.write(b"<a href=\"http://li2z.cn/?s=SimpleHTTPServerWithUpload\">")
+          f.write(b"here</a>.</small></body>\n</html>\n")
+          length = f.tell()
+          f.seek(0)
+          self.send_response(200)
+          self.send_header("Content-type", "text/html")
+          self.send_header("Content-Length", str(length))
+          self.end_headers()
+          if f:
+              self.copyfile(f, self.wfile)
+              f.close()
         else:
-            f.write(b"<strong>Failed:</strong>")
-        f.write(info.encode())
-        f.write(("<br><a href=\"%s\">back</a>" % self.headers['referer']).encode())
-        f.write(b"<hr><small>Powerd By: bones7456, check new version at ")
-        f.write(b"<a href=\"http://li2z.cn/?s=SimpleHTTPServerWithUpload\">")
-        f.write(b"here</a>.</small></body>\n</html>\n")
-        length = f.tell()
-        f.seek(0)
-        self.send_response(200)
-        self.send_header("Content-type", "text/html")
-        self.send_header("Content-Length", str(length))
-        self.end_headers()
-        if f:
-            self.copyfile(f, self.wfile)
-            f.close()
+          # push the posts messages to the chat server HERE
+          pass
         
     def login(self):
         pass
@@ -329,8 +333,11 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 def main(handler_class = SimpleHTTPRequestHandler,
          server_class = http.server.ThreadingHTTPServer):
     server_address = ('', 8080)
+    server_chatroom = ('', 8081)
     httpd = server_class(server_address, handler_class)
+    #httpdChatroom = server_class(server_chatroom, handler_class)
     httpd.serve_forever()
+    #httpdChatroom.serve_forever()
  
 if __name__ == '__main__':
     main()
