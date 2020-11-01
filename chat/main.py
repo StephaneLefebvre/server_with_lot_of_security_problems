@@ -1,4 +1,6 @@
 #! -*- enconding: utf-8 -*-
+# From https://dev.to/raymag/building-a-simple-webchat-2504
+
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 
