@@ -14,7 +14,7 @@ socket.on('server_message', (data) => {
     let sp = document.createElement('span');
     sp.innerHTML = data.nickname;
     e.appendChild(sp);
-    e.innerHTML = e.innerHTML+'>> '+data.message;
+    e.innerHTML = e.innerHTML+'> '+data.message;
     if(document.getElementById('message-box').children.length>20){
         document.getElementById('message-box').removeChild(document.getElementById('message-box').children[0]);
     }
@@ -52,7 +52,7 @@ function isPressingEnter(e){
 
     <section id="input-box">
         <input type="text" autofocus onkeypress="return isPressingEnter(event)" required placeholder="Écrivez le message ici" id="message-input">
-	<button type="button" id="send-button" onclick="sendMessage()" >:</button> 
+	<button type="button" id="send-button" onclick="sendMessage()">→</button>
     </section>
 </section>
 
