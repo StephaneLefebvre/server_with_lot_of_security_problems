@@ -98,12 +98,12 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
           if self.headers["Content-Type"] == "application/x-www-form-urlencoded":
               data = self.extract_POST_data()
               cookie = None
-              if data.get('psw') == "easyToGuessPassword":
+              if data.get('psw') == "password":
                   cookie = http.cookies.SimpleCookie()
                   cookie['normal_user1'] = "ok"
                   self.headers['Cookie'] = "normal_user1=ok" 
 
-              if data.get('psw') == "normalToGuessPassword":
+              if data.get('psw').replace(' ', "") == "'OR1=1--":
                   cookie = http.cookies.SimpleCookie()
                   cookie['normal_user2'] = "ok"
                   self.headers['Cookie'] = "normal_user2=ok" 
