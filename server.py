@@ -103,20 +103,19 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Serve a POST request."""
-        if not self.pathstartswith("/chatroom"):
+        if not self.path.startswith("/chatroom"):
             if self.headers["Content-Type"] == "application/x-www-form-urlencoded":
                 data = self.extract_POST_data()
                 cookie = None
                 if data.get("psw") == "password":
                     cookie = http.cookies.SimpleCookie()
                     cookie["normal_user1"] = "ok"
-                    self.headers["Cookie"] = "normal_user1=ok"
+                    # self.headers["Cookie"] = "normal_user1=ok"
 
                 if data.get("psw").replace(" ", "") == "'OR1=1--":
                     cookie = http.cookies.SimpleCookie()
                     cookie["normal_user2"] = "ok"
-                    self.headers["Cookie"] = "normal_user2=ok"
-
+                    # self.headers["Cookie"] = "normal_user2=ok"
                 if data.get("psw") == "hardToGuessPassword":
                     cookie = http.cookies.SimpleCookie()
                     cookie["admin"] = "ok"
