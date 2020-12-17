@@ -24,6 +24,11 @@ import mimetypes
 import re
 from io import BytesIO
 
+DISPATCH = {
+        "normal_user1": "/normal_user1",
+        "normal_user2": "/normal_user2",
+        "admin": "/admin",
+        }
 
 class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
 
@@ -37,45 +42,21 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     """
 
     server_version = "SimpleHTTPWithUpload/" + __version__
-
-    def do_GET(self, cookie=None):
+    def do_GET(self, goto=None):
         """Serve a GET request."""
-        if len(self.path) < 2 and self.is_auth_normal_user1():
-            self.path = "/normal_user1"
-        if len(self.path) < 2 and self.is_auth_normal_user2():
-            self.path = "/normal_user2"
-        if len(self.path) < 2 and self.is_auth_admin():
-            self.path = "/admin"
-        if (
-            not "specialChar" in self.path
-            and not ".png" in self.path
-            and not self.is_auth()
-            and not self.path.startswith("/chatroom")
-        ):
-            self.path = "/"
-        f = self.send_head(cookie)
+        self.path = DISPATCH.get(goto, "/")
+        print(f"do_GET, with path = {self.path}")
+        f = self.send_head()
         if f:
             self.copyfile(f, self.wfile)
             f.close()
 
-    def is_auth_normal_user1(self):
-        cookies = self.get_cookies()
-        return cookies.get("normal_user1") == "ok"
-
-    def is_auth_normal_user2(self):
-        cookies = self.get_cookies()
-        return cookies.get("normal_user2") == "ok"
-
-    def is_auth_admin(self):
-        cookies = self.get_cookies()
-        return cookies.get("admin") == "ok"
-
     def is_auth(self):
         cookies = self.get_cookies()
         return (
-            (cookies.get("normal_user1") == "ok")
-            or (cookies.get("normal_user2") == "ok")
-            or (cookies.get("admin") == "ok")
+            (cookies.get("user") == "Bob")
+            or (cookies.get("user") == "Billy")
+            or (cookies.get("user") == "admin")
         )
 
     def do_HEAD(self):
@@ -106,22 +87,14 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         if not self.path.startswith("/chatroom"):
             if self.headers["Content-Type"] == "application/x-www-form-urlencoded":
                 data = self.extract_POST_data()
-                cookie = None
+                goto = None
                 if data.get("psw") == "password":
-                    cookie = http.cookies.SimpleCookie()
-                    cookie["normal_user1"] = "ok"
-                    # self.headers["Cookie"] = "normal_user1=ok"
-
+                    goto = "normal_user1"
                 if data.get("psw").replace(" ", "") == "'OR1=1--":
-                    cookie = http.cookies.SimpleCookie()
-                    cookie["normal_user2"] = "ok"
-                    # self.headers["Cookie"] = "normal_user2=ok"
+                    goto = "normal_user2=ok"
                 if data.get("psw") == "hardToGuessPassword":
-                    cookie = http.cookies.SimpleCookie()
-                    cookie["admin"] = "ok"
-                    self.headers["Cookie"] = "admin=ok"
-
-                self.do_GET(cookie)
+                    goto = "admin"
+                self.do_GET(goto)
                 return
             r, info = self.deal_post_data()
             print((r, info, "by: ", self.client_address))
@@ -214,28 +187,6 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
         path = self.translate_path(self.path)
         f = None
         if os.path.isdir(path):
-            if any(
-                [
-                    elt in self.path
-                    for elt in [
-                        "Nicky",
-                        "Andr",
-                        "Florence",
-                        "evg_olivier_fZQeD",
-                        "Villefort",
-                    ]
-                ]
-            ):
-                return self.list_images(path)
-            if not self.path.endswith("/"):
-                # redirect browser - doing basically what apache does
-                self.send_response(301)
-                self.send_header("Location", self.path + "/")
-                if cookie:
-                    print("SENDING COOKIES IN HEADER")
-                    self.send_header("Set-Cookie", cookie.output(header="", sep=""))
-                self.end_headers()
-                return None
             for index in "index.html", "index.htm":
                 index = os.path.join(path, index)
                 if os.path.exists(index):
