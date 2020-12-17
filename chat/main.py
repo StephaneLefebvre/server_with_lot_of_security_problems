@@ -22,6 +22,7 @@ def index():
 def receive_message(client_msg):
     emit("server_message", client_msg, broadcast=True)
 
+if __name__ == '__main__':
+    socketio.run(app, host= '0.0.0.0')
 
-if __name__ == "__main__":
-    socketio.run(app)
+
