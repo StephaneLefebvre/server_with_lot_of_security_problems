@@ -160,6 +160,9 @@ span.psw {
 </div>
 
 <script>
+// Remember Bob, your ssh user is bob_not_an_admin
+// And please change your website password !
+
 // Get the modal
 var modal = document.getElementById('id01');
 
@@ -184,8 +187,11 @@ if (target.tagName.toLowerCase() == 'a')
 }, false)
 
 
-// Remember Bob, your ssh user is bob_not_an_admin
 
+// I changed the way admin session is checked
+// It dosen't follow the same code as the other ones
+// Can someone review my code?
+// I'm not sure I did the SQL sanitizing properly 
 
 
 

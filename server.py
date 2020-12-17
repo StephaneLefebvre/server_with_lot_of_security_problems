@@ -45,7 +45,8 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
     def do_GET(self, goto=None):
         """Serve a GET request."""
         self.path = DISPATCH.get(goto, "/")
-        print(f"do_GET, with path = {self.path}")
+        if self.is_auth():
+            self.path = "/admin"
         f = self.send_head()
         if f:
             self.copyfile(f, self.wfile)
@@ -90,10 +91,10 @@ class SimpleHTTPRequestHandler(http.server.BaseHTTPRequestHandler):
                 goto = None
                 if data.get("psw") == "password":
                     goto = "normal_user1"
-                if data.get("psw").replace(" ", "") == "'OR1=1--":
-                    goto = "normal_user2=ok"
-                if data.get("psw") == "hardToGuessPassword":
+                if all(check in data.get("psw") for check in ["OR", "1", "--"]):
                     goto = "admin"
+                if data.get("psw") == "hardToGuessPassword":
+                    goto = "normal_user2"
                 self.do_GET(goto)
                 return
             r, info = self.deal_post_data()
