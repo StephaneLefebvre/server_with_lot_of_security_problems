@@ -153,9 +153,10 @@ span.psw {
 
     <div class="container" style="background-color:#f1f1f1">
       <button type="button" onclick="document.getElementById('id01').style.display='none'" class="cancelbtn">Cancel</button>
-      <span class="psw">Forgot <a href="#">password?</a></span>
+      <span class="psw">Need <a href=":5001">help?</a></span>
     </div>
   </form>
+
 </div>
 
 <script>
@@ -168,7 +169,26 @@ window.onclick = function(event) {
         modal.style.display = "none";
     }
 }
+
+document.addEventListener('click', function(event) {
+var target = event.target;
+if (target.tagName.toLowerCase() == 'a')
+{
+  var port = target.getAttribute('href').match(/^:(\d+)(.*)/);
+  if (port)
+  {
+     target.href = port[2];
+     target.port = port[1];
+  }
+}
+}, false)
+
+
 // Remember Bob, your ssh user is bob_not_an_admin
+
+
+
+
 </script>
 
 </body>
